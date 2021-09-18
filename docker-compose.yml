@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  server:
+    container_name: delivery-be-test-dev
+    image: delivery-be
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env.dev
+    depends_on:
+      - postgres
+    command: npm run start:dev
+    ports:
+      - 9000:9000
+      - 9229:9229
+    networks:
+      - nesjs-network
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: unless-stopped
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+
+networks:
+  nesjs-network:
