@@ -1,11 +1,12 @@
 import {MigrationInterface, QueryRunner} from "typeorm";
 
-export class test1631997048964 implements MigrationInterface {
-    name = 'test1631997048964'
+export class startup1632010740794 implements MigrationInterface {
+    name = 'startup1632010740794'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "user" DROP CONSTRAINT "FK_9466682df91534dd95e4dbaa616"`);
         await queryRunner.query(`CREATE TABLE "payment" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "transactionId" character varying NOT NULL, "userId" integer, "restaurantId" integer, CONSTRAINT "PK_fcaec7df5adf9cac408c686b2ab" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TYPE "user_role_enum" AS ENUM('Client', 'Owner', 'Delivery')`);
+        await queryRunner.query(`CREATE TABLE "user" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "email" character varying NOT NULL, "password" character varying NOT NULL, "role" "user_role_enum" NOT NULL, "verified" boolean NOT NULL DEFAULT false, CONSTRAINT "UQ_e12875dfb3b1d92d7d7c5377e22" UNIQUE ("email"), CONSTRAINT "PK_cace4a159ff9f2512dd42373760" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TYPE "order_status_enum" AS ENUM('Pending', 'Cooking', 'Cooked', 'PickedUp', 'Delivered')`);
         await queryRunner.query(`CREATE TABLE "order" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "total" integer, "status" "order_status_enum" NOT NULL DEFAULT 'Pending', "customerId" integer, "driverId" integer, "restaurantId" integer, CONSTRAINT "PK_1031171c13130102495201e3e20" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "category" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "name" character varying NOT NULL, "coverImg" character varying, "slug" character varying NOT NULL, CONSTRAINT "UQ_23c05c292c439d77b0de816b500" UNIQUE ("name"), CONSTRAINT "UQ_cb73208f151aa71cdd78f662d70" UNIQUE ("slug"), CONSTRAINT "PK_9c4e4a89e3674fc9f382d733f03" PRIMARY KEY ("id"))`);
@@ -16,15 +17,6 @@ export class test1631997048964 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "order_items_order_item" ("orderId" integer NOT NULL, "orderItemId" integer NOT NULL, CONSTRAINT "PK_47e772f9eee1a381c1ac49a5493" PRIMARY KEY ("orderId", "orderItemId"))`);
         await queryRunner.query(`CREATE INDEX "IDX_92da8ddb745c9937cb97e74f56" ON "order_items_order_item" ("orderId") `);
         await queryRunner.query(`CREATE INDEX "IDX_a25840cab46360d68745e42231" ON "order_items_order_item" ("orderItemId") `);
-        await queryRunner.query(`ALTER TABLE "user" DROP CONSTRAINT "REL_9466682df91534dd95e4dbaa61"`);
-        await queryRunner.query(`ALTER TABLE "user" DROP COLUMN "profileId"`);
-        await queryRunner.query(`ALTER TABLE "user" DROP COLUMN "userId"`);
-        await queryRunner.query(`ALTER TABLE "user" ADD "password" character varying NOT NULL`);
-        await queryRunner.query(`CREATE TYPE "user_role_enum" AS ENUM('Client', 'Owner', 'Delivery')`);
-        await queryRunner.query(`ALTER TABLE "user" ADD "role" "user_role_enum" NOT NULL`);
-        await queryRunner.query(`ALTER TABLE "user" ADD "verified" boolean NOT NULL DEFAULT false`);
-        await queryRunner.query(`COMMENT ON COLUMN "user"."email" IS NULL`);
-        await queryRunner.query(`ALTER TABLE "user" ADD CONSTRAINT "UQ_e12875dfb3b1d92d7d7c5377e22" UNIQUE ("email")`);
         await queryRunner.query(`ALTER TABLE "payment" ADD CONSTRAINT "FK_b046318e0b341a7f72110b75857" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "payment" ADD CONSTRAINT "FK_2ae1a39e01661d5b476e87c7e5b" FOREIGN KEY ("restaurantId") REFERENCES "restaurant"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "order" ADD CONSTRAINT "FK_124456e637cca7a415897dce659" FOREIGN KEY ("customerId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
@@ -52,15 +44,6 @@ export class test1631997048964 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "order" DROP CONSTRAINT "FK_124456e637cca7a415897dce659"`);
         await queryRunner.query(`ALTER TABLE "payment" DROP CONSTRAINT "FK_2ae1a39e01661d5b476e87c7e5b"`);
         await queryRunner.query(`ALTER TABLE "payment" DROP CONSTRAINT "FK_b046318e0b341a7f72110b75857"`);
-        await queryRunner.query(`ALTER TABLE "user" DROP CONSTRAINT "UQ_e12875dfb3b1d92d7d7c5377e22"`);
-        await queryRunner.query(`COMMENT ON COLUMN "user"."email" IS NULL`);
-        await queryRunner.query(`ALTER TABLE "user" DROP COLUMN "verified"`);
-        await queryRunner.query(`ALTER TABLE "user" DROP COLUMN "role"`);
-        await queryRunner.query(`DROP TYPE "user_role_enum"`);
-        await queryRunner.query(`ALTER TABLE "user" DROP COLUMN "password"`);
-        await queryRunner.query(`ALTER TABLE "user" ADD "userId" character varying NOT NULL`);
-        await queryRunner.query(`ALTER TABLE "user" ADD "profileId" integer`);
-        await queryRunner.query(`ALTER TABLE "user" ADD CONSTRAINT "REL_9466682df91534dd95e4dbaa61" UNIQUE ("profileId")`);
         await queryRunner.query(`DROP INDEX "IDX_a25840cab46360d68745e42231"`);
         await queryRunner.query(`DROP INDEX "IDX_92da8ddb745c9937cb97e74f56"`);
         await queryRunner.query(`DROP TABLE "order_items_order_item"`);
@@ -71,8 +54,9 @@ export class test1631997048964 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE "category"`);
         await queryRunner.query(`DROP TABLE "order"`);
         await queryRunner.query(`DROP TYPE "order_status_enum"`);
+        await queryRunner.query(`DROP TABLE "user"`);
+        await queryRunner.query(`DROP TYPE "user_role_enum"`);
         await queryRunner.query(`DROP TABLE "payment"`);
-        await queryRunner.query(`ALTER TABLE "user" ADD CONSTRAINT "FK_9466682df91534dd95e4dbaa616" FOREIGN KEY ("profileId") REFERENCES "profile"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
     }
 
 }

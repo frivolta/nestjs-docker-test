@@ -46,7 +46,30 @@ import { UploadsModule } from './uploads/uploads.module';
         AWS_SECRET: Joi.string().required(),
       }),
     }),
-    TypeOrmModule.forRoot(config),
+    TypeOrmModule.forRootAsync({
+      useFactory: () => ({
+        type: 'postgres',
+        ...(process.env.DATABASE_URL
+          ? { url: process.env.DATABASE_URL }
+          : {
+              host: process.env.DB_HOST,
+              port: +process.env.DB_PORT,
+              username: process.env.DB_USERNAME,
+              password: process.env.DB_PASSWORD,
+              database: process.env.DB_NAME,
+            }),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        migrations: ['migration/**/*{.ts,.js}'],
+        migrationsTableName: 'migrations_typeorm',
+        synchronize: false,
+        cli: {
+          migrationsDir: 'migration',
+        },
+
+        logging:
+          process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
+      }),
+    }),
     GraphQLModule.forRoot({
       playground: process.env.NODE_ENV !== 'production',
       installSubscriptionHandlers: true,

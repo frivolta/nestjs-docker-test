@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   server:
-    container_name: delivery-be-test-dev
+    container_name: delivery-be-dev
     image: delivery-be
     build:
       context: .
@@ -12,9 +12,9 @@ services:
       - .env.dev
     depends_on:
       - postgres
-    command: npm run start:dev
+    command: sh -c "npm run migration:run && npm run start:dev"
     ports:
-      - 9000:9000
+      - 4000:4000
       - 9229:9229
     networks:
       - nesjs-network
@@ -28,9 +28,10 @@ services:
     ports:
       - 5432:5432
     environment:
-      POSTGRES_DB: postgres
+      POSTGRES_DB: delivery-be
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
+      PG_DATA: /var/lib/postgresql/data
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
 
